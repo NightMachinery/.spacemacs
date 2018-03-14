@@ -30,22 +30,30 @@ values."
    dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(
-     crystal
+   '(javascript
+     vimscript
+     (rust :variables
+           rust-format-on-save t)
+     ;;crystal
+     (haskell :variables haskell-enable-hindent t)
      html
      python
+     chrome
      (scala :variables
             scala-auto-insert-asterisk-in-comments t
             scala-use-unicode-arrows t
             scala-auto-insert-asterisk-in-comments t)
      autohotkey
+     kotlin
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press <SPC f e R> (Vim style) or
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
      helm
-     auto-completion
+     (auto-completion :variables
+                      auto-completion-enable-help-tooltip t
+                      auto-completion-enable-snippets-in-popup t) ;; doesn't work with the mac port version of emacs.
      ;; better-defaults
      emacs-lisp
      (ibuffer :variables ibuffer-group-buffers-by 'modes)
@@ -56,24 +64,30 @@ values."
      emoji
      (unicode-fonts :variables unicode-fonts-force-multi-color-on-mac t)
      git
-    (java :variables java-backend 'ensime)
+     (java :variables java-backend 'ensime)
      markdown
      org
      (shell :variables
             shell-default-height 30
             shell-default-position 'bottom)
      spell-checking
-     syntax-checking
+     (syntax-checking :variables
+                      syntax-checking-enable-tooltips t)
+     (elm :variables elm-sort-imports-on-save t
+          elm-format-on-save t)
      version-control
      osx
      racket
      clojure
+     ;; (keyboard-layout :variables kl-layout 'dvorak-right-handed)
      )
    ;; List of additional packages that will be installed without being
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(key-chord smooth-scroll smooth-scrolling ac-cider mips-mode solarized-theme  color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
+   dotspacemacs-additional-packages '(typed-clojure-mode adaptive-wrap persp-projectile key-chord solarized-theme  color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
+   ;; persp-projectile switch-window company-childframe 
+
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
@@ -112,7 +126,7 @@ values."
    ;; If non-nil then Spacelpa repository is the primary source to install
    ;; a locked version of packages. If nil then Spacemacs will install the lastest
    ;; version of packages from MELPA. (default nil)
-   dotspacemacs-use-spacelpa t
+   dotspacemacs-use-spacelpa nil
    ;; If non-nil then verify the signature for downloaded Spacelpa archives.
    ;; (default nil)
    dotspacemacs-verify-spacelpa-archives nil
@@ -124,7 +138,7 @@ values."
    ;; If non-nil, a form that evaluates to a package directory. For example, to
    ;; use different package directories for different Emacs versions, set this
    ;; to `emacs-version'.
-   dotspacemacs-elpa-subdirectory nil
+   dotspacemacs-elpa-subdirectory 'emacs-version
    ;; One of `vim', `emacs' or `hybrid'.
    ;; `hybrid' is like `vim' except that `insert state' is replaced by the
    ;; `hybrid state' with `emacs' key bindings. The value can also be a list
@@ -158,7 +172,7 @@ values."
    ;; List of themes, the first of the list is loaded when spacemacs starts.
    ;; Press <SPC> T n to cycle to the next theme in the list (works great
    ;; with 2 themes variants, one dark and one light)
-   dotspacemacs-themes '(solarized-light spacemacs-dark
+   dotspacemacs-themes '(solarized-light zenburn
                                          ) ;;spacemacs-light
    ;; If non nil the cursor color matches the state color in GUI Emacs.
    dotspacemacs-colorize-cursor-according-to-state t
@@ -252,7 +266,7 @@ values."
    dotspacemacs-loading-progress-bar t
    ;; If non nil the frame is fullscreen when Emacs starts up. (default nil)
    ;; (Emacs 24.4+ only)
-   dotspacemacs-fullscreen-at-startup nil
+   dotspacemacs-fullscreen-at-startup t
    ;; If non nil `spacemacs/toggle-fullscreen' will not use native fullscreen.
    ;; Use to disable fullscreen animations in OSX. (default nil)
    dotspacemacs-fullscreen-use-non-native nil
@@ -332,20 +346,16 @@ executes.
  This function is mostly useful for variables that need to be set
 before packages are loaded. If you are unsure, you should try in setting them in
 `dotspacemacs/user-config' first."
-  (add-to-list 'exec-path "/usr/local/bin") ;; Needed for Clojure REPL.
-
-  ;; Default value for :pin in each use-package.
-  ;;(setq use-package-always-bin "melpa-stable")
-  (setq evil-want-abbrev-expand-on-insert-exit nil)
-  (setq-default evil-escape-key-sequence "ii")
-  (setq-default evil-escape-delay 0.2)
-  ;; (setq special-display-buffer-names
-  ;; ‘(“*sbt*” “*Help*”)) ;;Stops splitting the window for sbt buffers.
-  (setq ensime-startup-notification `nil)
-  (setq exec-path-from-shell-check-startup-files nil)
-  (setq pop-up-frames 't)
-  
-
+  ;; (add-to-list 'exec-path "/usr/local/bin") ;; Needed for Clojure REPL.
+  ;; (setq configuration-layer-elpa-archives
+  ;;       '(("melpa"    . "melpa.org/packages/")
+  ;;         ("org"      . "orgmode.org/elpa/")
+  ;;         ("gnu"      . "elpa.gnu.org/packages/")))
+  (setq frame-resize-pixelwise t)
+  (when (memq window-system '(mac ns))
+    (add-to-list 'default-frame-alist '(ns-appearance . 'nil))
+    (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
+  ;;(setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . 'nil)))
 
   )
 
@@ -356,8 +366,22 @@ layers configuration.
 This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
-  
+
   ;; (global-set-key (kbd "<f7> <f8>") 'recentf-open-files)
+  (load-theme 'zenburn t t)
+  (load-theme 'solarized-light t t)
+  ;; (defun activate-zenburn ()  (if (not (or (display-graphic-p)))
+  ;;                                 (progn
+  ;;                                   (disable-theme 'solarized-light)
+  ;;                                   (enable-theme 'zenburn))
+  ;;                               ;;(enable-theme 'solarized-light)
+  ;;                                 ;;(progn
+  ;;                                   ;;(load-theme 'zenburn t))
+  ;;                               ;;(load-theme 'solarized-light t)
+  ;;                                  ;;(+ 2 2)
+  ;;                               ))
+  ;; (add-hook 'tty-setup-hook 'activate-zenburn)
+
   (add-hook 'Man-mode-hook
             (lambda () (local-set-key (kbd "q") 'Man-kill)))
   (spacemacs/set-leader-keys "oo" 'recentf-open-files)
@@ -365,17 +389,73 @@ you should place your code here."
   (spacemacs/set-leader-keys "omg" 'evil-goto-mark)
   (spacemacs/set-leader-keys "oa" 'write-file)
   (spacemacs/set-leader-keys "os" 'save-some-buffers)
-  (spacemacs/set-leader-keys "of" 'spacemacs/toggle-fullscreen)
+  (spacemacs/set-leader-keys "of" 'toggle-frame-fullscreen) ;;'spacemacs/toggle-fullscreen)
+  (spacemacs/set-leader-keys "op" 'projectile-persp-switch-project)
+  (define-key key-translation-map (kbd "SPC o x") (kbd "C-x #"))
+  (global-set-key (kbd "H-<right>") 'end-of-line)
+  (global-set-key (kbd "H-<left>") 'back-to-indentation)
+  (global-set-key (kbd "H-M-<left>") 'beginning-of-line)
+  ;; (setq edit-server-url-major-mode-alist
+  ;; '(("quora\\.com" . text-mode)))
+  (add-hook 'edit-server-done-hook (lambda () (shell-command "open -a \"Google Chrome\"")))
+  (defun ssh-win ()
+    (interactive)
+    (dired "/ssh:Evar@10.211.55.3:/"))
+  (setq ns-right-command-modifier 'super)
+  (purpose-mode -1)
+  ;; (require 'company-childframe)
+  ;; (company-childframe-mode 1)
+
+
+  (define-key evil-normal-state-map (kbd "[ o") 'evil-unimpaired/next-frame)
+  (define-key evil-normal-state-map (kbd "] o") 'evil-unimpaired/previous-frame)
+
+  ;; (require 'persp-projectile)
+  ;; Default value for :pin in each use-package.
+  ;;(setq use-package-always-bin "melpa-stable")
+  (setq evil-want-abbrev-expand-on-insert-exit nil)
+  (setq-default evil-escape-key-sequence "ii")
+  (setq-default evil-escape-delay 0.3)
+  ;; (setq special-display-buffer-names
+  ;; ‘(“*sbt*” “*Help*”)) ;;Stops splitting the window for sbt buffers.
+  (setq ensime-startup-notification `nil)
+  (setq exec-path-from-shell-check-startup-files nil)
+  (setq pop-up-frames nil) ;;Default is true.
+
+  (defvar-local previous-binding-for-q nil)
+  ;; (add-hook 'read-only-mode-hook '(lambda ()
+  ;;                                   (if buffer-read-only
+  ;;                                       (progn
+  ;;                                         (setq previous-binding-for-q (local-key-binding "q"))
+  ;;                                         (local-set-key "q" '(lambda ()
+  ;;                                                               (quit-window "KILL")))
+  ;;                                         (message "q remapped to kill buffer."))
+  ;;                                     (progn
+  ;;                                       (message "q restored to original mapping.")
+  ;;                                       (local-set-key "q" previous-binding-for-q)))))
+  (require 'view)
+  (setq view-read-only t)     ; enter view-mode for read-only files
+  (defun kill-window ()
+    (interactive)
+    (quit-window "KILL"))
+  (define-key view-mode-map "x" 'kill-window)
+  (defun set-x-to-kill ()
+    (local-set-key "x" 'kill-window))
+  (add-hook 'help-mode-hook 'set-x-to-kill)
+  (add-hook 'dired-mode-hook 'set-x-to-kill)
+
+  (setq-default adaptive-wrap-extra-indent 2)
+  (add-hook 'visual-line-mode-hook #'adaptive-wrap-prefix-mode)
 
   ;; These 3 lines are supposed to make Scala layer work with Java.
-  (setq exec-path (append exec-path '("/usr/local/bin")))
+  ;; (setq exec-path (append exec-path '("/usr/local/bin")))
   ;;(add-hook 'java-mode-hook 'scala/configure-ensime)
   ;;(add-hook 'java-mode-hook 'scala/maybe-start-ensime)
- 
+
 
   ;; (setq eclim-eclipse-dirs '("~/eclipse/jee-oxygen2/Eclipse.app/Contents/Eclipse")
-        ;; eclim-executable "~/.p2/pool/plugins/org.eclim_2.7.2/bin/eclim"
-        ;; eclimd-default-workspace "/Base/- Code/Eclipse")
+  ;; eclim-executable "~/.p2/pool/plugins/org.eclim_2.7.2/bin/eclim"
+  ;; eclimd-default-workspace "/Base/- Code/Eclipse")
   ;; (require 'eclim)
   ;; (setq eclimd-autostart t)
 
@@ -383,19 +463,19 @@ you should place your code here."
   ;;   (eclim-mode t))
 
   ;; (add-hook 'java-mode-hook 'my-java-mode-hook)
-  
+
   (setenv "SHELL" "/bin/bash")
-  (setq shell-file-name "/bin/bash") 
+  (setq shell-file-name "/bin/bash")
   (setq explicit-shell-file-name "/bin/bash") ;;Set emacs shell to bash.
   (setenv "PAGER" "cat") ;;Required for shell mode.
   (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/myPackages/"))
-  (setenv "WORKON_HOME" "~/anaconda/envs")
-  (pyvenv-mode 1)
+  ;; (setenv "WORKON_HOME" "~/anaconda/envs")
+  ;; (pyvenv-mode 1)
   ;; (require 'webkit)
   (require 'bookmark+)
   ;; (load-theme 'solarized-light t)
-  
+
   ;; GUI Settings for YAMAMOTO Mitsuharu's Mac port of GNU Emacs.
   ;; https://github.com/railwaycat/homebrew-emacsmacport
   (when (and (spacemacs/system-is-mac) (display-graphic-p))
@@ -423,39 +503,51 @@ you should place your code here."
 
   (fset 'evil-visual-update-x-selection 'ignore)
   (delete-selection-mode 1)
-  (set-default 'server-socket-dir "~/.emacs.d/server")
-  (if (functionp 'window-system)
-      (when (and (window-system)
-                 (>= emacs-major-version 24))
-        (server-start)))
+  ;; (set-default 'server-socket-dir "~/.emacs.d/server")
+  ;; (if (functionp 'window-system)
+  ;;     (when (and (window-system)
+  ;;                (>= emacs-major-version 24))
+  ;;       (if (server-running-p)(server-start))))
   (require 'helm-bookmark)
-  (require 'cider) 
-  (require 'mips-mode)
-  (save-place-mode 1) 
+  (require 'cider)
+  (save-place-mode 1)
   ;; (require 'smooth-scrolling)
-  ;; (require 'smooth-scroll                        ) ;; Smooth scroll 
-  ;; (smooth-scroll-mode 1                          ) ;; Enable it 
+  ;; (require 'smooth-scroll                        ) ;; Smooth scroll
+  ;; (smooth-scroll-mode 1                          ) ;; Enable it
   ;; (setq smooth-scroll/vscroll-step-size 5        ) ;; Set the speed right
   ;;(setq geiser-racket-binary "/Applications/Racket v6.10.1/bin/racket")
   (setq clojure-enable-fancify-symbols t)
   (key-chord-mode 1)
-  (key-chord-define evil-insert-state-map "fd" 'evil-escape)
-  (key-chord-define evil-insert-state-map "hh" 'cider-doc)
-  (require 'ac-cider)
-  (add-hook 'clojure-mode-hook 'ac-flyspell-workaround)
-  (add-hook 'clojure-mode-hook 'ac-cider-setup)
-  (add-hook 'clojure-mode-hook 'auto-complete-mode)
-  (add-hook 'cider-repl-mode-hook 'ac-cider-setup)
-  (eval-after-load "auto-complete"
-    '(progn
-       (add-to-list 'ac-modes 'clojure-mode)
-       (add-to-list 'ac-modes 'cider-mode)
-       (add-to-list 'ac-modes 'cider-repl-mode)))
-  (defun set-auto-complete-as-completion-at-point-function ()
-    (setq completion-at-point-functions '(auto-complete)))
+  ;; (key-chord-define evil-insert-state-map "fd" 'evil-escape)
+  (key-chord-define evil-insert-state-map "jj" 'evil-delete-backward-char)
+  (key-chord-define evil-insert-state-map "kk" 'delete-forward-char)
+  ;;(defun add-key-cider-doc () (key-chord-define evil-insert-state-map "hh" 'cider-doc))
+  (key-chord-define-global "tt" '(lambda () (interactive "")
+                                 (cond
+                                  ((or (eq evil-state 'normal) (eq evil-state 'visual)) (execute-kbd-macro (kbd "<escape> , h h")))
+                                  ((eq evil-state 'insert) (execute-kbd-macro(kbd "<escape> l , h h i"))))))
+  (add-hook 'clojure-mode-hook 'add-key-cider-doc)
+  (add-hook 'cider-repl-mode-hook 'add-key-cider-doc)
 
-  (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
-  (add-hook 'clojure-mode-hook 'set-auto-complete-as-completion-at-point-function) 
+  (add-hook 'clojure-mode-hook 'typed-clojure-mode)
+
+
+  ;; (require 'ac-cider)
+  ;; (add-hook 'clojure-mode-hook 'ac-flyspell-workaround)
+  ;; (add-hook 'clojure-mode-hook 'ac-cider-setup)
+  ;; (add-hook 'clojure-mode-hook 'auto-complete-mode)
+  ;; (add-hook 'cider-repl-mode-hook 'ac-cider-setup)
+  ;; (eval-after-load "auto-complete"
+  ;;   '(progn
+  ;;      (add-to-list 'ac-modes 'clojure-mode)
+  ;;      (add-to-list 'ac-modes 'cider-mode)
+  ;;      (add-to-list 'ac-modes 'cider-repl-mode)))
+  ;; (defun set-auto-complete-as-completion-at-point-function ()
+  ;;   (setq completion-at-point-functions '(auto-complete)))
+
+  ;; (add-hook 'auto-complete-mode-hook 'set-auto-complete-as-completion-at-point-function)
+  ;; (add-hook 'clojure-mode-hook 'se
+  ;; t-auto-complete-as-completion-at-point-function)
   ;; (spacemacs/toggle-line-numbers-on)
   (add-hook 'prog-mode-hook 'linum-mode)
   (global-visual-line-mode)
@@ -527,55 +619,52 @@ you should place your code here."
 This is an auto-generated function, do not modify its content directly, use
 Emacs customize menu instead.
 This function is called at the very end of Spacemacs initialization."
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(ansi-color-faces-vector
-   [default bold shadow italic underline bold bold-italic bold])
- '(ansi-color-names-vector
-   ["#0a0814" "#f2241f" "#67b11d" "#b1951d" "#4f97d7" "#a31db1" "#28def0" "#b2b2b2"])
- '(company-quickhelp-color-background "#4F4F4F")
- '(company-quickhelp-color-foreground "#DCDCCC")
- '(custom-safe-themes
-   (quote
-    ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default)))
- '(evil-want-Y-yank-to-eol nil)
- '(fci-rule-color "#343d46" t)
- '(nrepl-message-colors
-   (quote
-    ("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3")))
- '(package-selected-packages
-   (quote
-    (unicode-fonts ucs-utils font-utils persistent-soft list-utils company-emacs-eclim eclim yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic doom-themes all-the-icons memoize nyan-mode proof-general company-coq company-math math-symbol-lists ibuffer-projectile zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme rainbow-mode rainbow-identifiers color-identifiers-mode selectric-mode typit mmt sudoku pacmacs dash-functional 2048-game emoji-cheat-sheet-plus company-emoji iedit scroll-restore play-crystal inf-crystal flycheck-crystal crystal-mode helm-company helm-c-yasnippet fuzzy company-web web-completion-data company-statistics clojure-snippets auto-yasnippet ac-ispell xterm-color shell-pop org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term htmlize gnuplot eshell-z eshell-prompt-extras esh-help powerline bind-key smartparens highlight f evil goto-chg projectile epl avy ghub let-alist async hydra dash s noflet ensime company sbt-mode scala-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode ahk-mode mips-mode ac-cider auto-complete smooth-scroll key-chord clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider seq queue clojure-mode helm helm-core racket-mode faceup smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit mmm-mode markdown-toc markdown-mode magit-gitflow launchctl helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line)))
- '(pdf-view-midnight-colors (quote ("#DCDCCC" . "#383838")))
- '(vc-annotate-background nil)
- '(vc-annotate-color-map
-   (quote
-    ((20 . "#bf616a")
-     (40 . "#DCA432")
-     (60 . "#ebcb8b")
-     (80 . "#B4EB89")
-     (100 . "#89EBCA")
-     (120 . "#89AAEB")
-     (140 . "#C189EB")
-     (160 . "#bf616a")
-     (180 . "#DCA432")
-     (200 . "#ebcb8b")
-     (220 . "#B4EB89")
-     (240 . "#89EBCA")
-     (260 . "#89AAEB")
-     (280 . "#C189EB")
-     (300 . "#bf616a")
-     (320 . "#DCA432")
-     (340 . "#ebcb8b")
-     (360 . "#B4EB89"))))
- '(vc-annotate-very-old-color nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(default ((((class color) (min-colors 257)) nil) (((class color) (min-colors 89)) (:background "#1c1c1c" :foreground "#eeeeee")))))
-)
+  (custom-set-variables
+   ;; custom-set-variables was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(ansi-color-faces-vector
+     [default bold shadow italic underline bold bold-italic bold])
+   '(ansi-color-names-vector
+     ["#0a0814" "#f2241f" "#67b11d" "#b1951d" "#4f97d7" "#a31db1" "#28def0" "#b2b2b2"])
+   '(bmkp-last-as-first-bookmark-file "~/.emacs.d/.cache/bookmarks")
+   '(company-quickhelp-color-background "#4F4F4F")
+   '(company-quickhelp-color-foreground "#DCDCCC")
+   '(custom-safe-themes
+     '("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default))
+   '(evil-want-Y-yank-to-eol nil)
+   '(fci-rule-color "#343d46" t)
+   '(nrepl-message-colors
+     '("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3"))
+   '(package-selected-packages
+     '(flycheck-elm elm-mode company-emacs-eclim eclim yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic doom-themes all-the-icons memoize nyan-mode proof-general company-coq company-math math-symbol-lists ibuffer-projectile zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme rainbow-mode rainbow-identifiers color-identifiers-mode selectric-mode typit mmt sudoku pacmacs dash-functional 2048-game emoji-cheat-sheet-plus company-emoji iedit scroll-restore play-crystal inf-crystal flycheck-crystal crystal-mode helm-company helm-c-yasnippet fuzzy company-web web-completion-data company-statistics clojure-snippets auto-yasnippet ac-ispell xterm-color shell-pop org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term htmlize gnuplot eshell-z eshell-prompt-extras esh-help powerline bind-key smartparens highlight f evil goto-chg projectile epl avy ghub let-alist async hydra dash s noflet ensime company sbt-mode scala-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode ahk-mode mips-mode ac-cider auto-complete smooth-scroll key-chord clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider seq queue clojure-mode helm helm-core racket-mode faceup smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit mmm-mode markdown-toc markdown-mode magit-gitflow launchctl helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))
+   '(pdf-view-midnight-colors '("#DCDCCC" . "#383838"))
+   '(vc-annotate-background nil)
+   '(vc-annotate-color-map
+     '((20 . "#bf616a")
+       (40 . "#DCA432")
+       (60 . "#ebcb8b")
+       (80 . "#B4EB89")
+       (100 . "#89EBCA")
+       (120 . "#89AAEB")
+       (140 . "#C189EB")
+       (160 . "#bf616a")
+       (180 . "#DCA432")
+       (200 . "#ebcb8b")
+       (220 . "#B4EB89")
+       (240 . "#89EBCA")
+       (260 . "#89AAEB")
+       (280 . "#C189EB")
+       (300 . "#bf616a")
+       (320 . "#DCA432")
+       (340 . "#ebcb8b")
+       (360 . "#B4EB89")))
+   '(vc-annotate-very-old-color nil))
+  (custom-set-faces
+   ;; custom-set-faces was added by Custom.
+   ;; If you edit it by hand, you could mess it up, so be careful.
+   ;; Your init file should contain only one such instance.
+   ;; If there is more than one, they won't work right.
+   '(default ((((class color) (min-colors 257)) nil) (((class color) (min-colors 89)) (:background "#1c1c1c" :foreground "#eeeeee")))))
+  )
