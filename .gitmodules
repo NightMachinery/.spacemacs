@@ -1,0 +1,4 @@
+[submodule "/Users/evar/.emacs.d/private/crystal"]
+	path = /Users/evar/.emacs.d/private/crystal
+	url = git@github.com:brantou/spacemacs-crystal-layer.git
+	branch = develop
