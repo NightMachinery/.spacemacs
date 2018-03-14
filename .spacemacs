@@ -468,8 +468,8 @@ you should place your code here."
   (setq shell-file-name "/bin/bash")
   (setq explicit-shell-file-name "/bin/bash") ;;Set emacs shell to bash.
   (setenv "PAGER" "cat") ;;Required for shell mode.
-  (add-to-list 'custom-theme-load-path "~/.emacs.d/themes/")
-  (add-to-list 'load-path (expand-file-name "~/.emacs.d/myPackages/"))
+  (add-to-list 'custom-theme-load-path "~/.emacs.d/private/Themes/")
+  (add-to-list 'load-path (expand-file-name "~/.emacs.d/private/myPackages/"))
   ;; (setenv "WORKON_HOME" "~/anaconda/envs")
   ;; (pyvenv-mode 1)
   ;; (require 'webkit)
