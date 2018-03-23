@@ -88,7 +88,7 @@ values."
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
    dotspacemacs-additional-packages '(typed-clojure-mode adaptive-wrap persp-projectile key-chord solarized-theme  color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
-   ;; persp-projectile switch-window company-childframe 
+   ;; persp-projectile switch-window company-childframe
 
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -393,8 +393,10 @@ you should place your code here."
   (spacemacs/set-leader-keys "os" 'save-some-buffers)
   (spacemacs/set-leader-keys "of" 'toggle-frame-fullscreen) ;;'spacemacs/toggle-fullscreen)
   (spacemacs/set-leader-keys "op" 'projectile-persp-switch-project)
-  (spacemacs/set-leader-keys "oi" (lambda () (interactive "")  (do-applescript "tell application \"IntelliJ IDEA 2018.1 EAP\" to activate"))
-    )
+  (spacemacs/set-leader-keys "oi" (lambda () (interactive "")
+                                    (progn  (save-buffer)
+                                            (do-applescript "tell application \"IntelliJ IDEA 2018.1 EAP\" to activate")
+                                            )))
   (define-key key-translation-map (kbd "SPC o x") (kbd "C-x #"))
   (global-set-key (kbd "H-<right>") 'end-of-line)
   (global-set-key (kbd "H-<left>") 'back-to-indentation)
@@ -411,6 +413,7 @@ you should place your code here."
   (setq password-cache-expiry nil)
   (setq projectile-mode-line "Projectile")
   (setq ns-right-command-modifier 'super)
+  (setq mac-option-modifier 'super) ; make opt key do Super
   ;; (purpose-mode -1)
   ;; (require 'company-childframe)
   ;; (company-childframe-mode 1)
@@ -532,9 +535,9 @@ you should place your code here."
   (key-chord-define evil-insert-state-map "kk" 'delete-forward-char)
   ;;(defun add-key-cider-doc () (key-chord-define evil-insert-state-map "hh" 'cider-doc))
   (key-chord-define-global "fd" '(lambda () (interactive "")
-                                 (cond
-                                  ((or (eq evil-state 'normal) (eq evil-state 'visual)) (execute-kbd-macro (kbd "<escape> , h h")))
-                                  ((eq evil-state 'insert) (execute-kbd-macro(kbd "<escape> l , h h i"))))))
+                                   (cond
+                                    ((or (eq evil-state 'normal) (eq evil-state 'visual)) (execute-kbd-macro (kbd "<escape> , h h")))
+                                    ((eq evil-state 'insert) (execute-kbd-macro(kbd "<escape> l , h h i"))))))
   (add-hook 'clojure-mode-hook 'add-key-cider-doc)
   (add-hook 'cider-repl-mode-hook 'add-key-cider-doc)
 
@@ -635,6 +638,8 @@ This function is called at the very end of Spacemacs initialization."
  ;; If there is more than one, they won't work right.
  '(ansi-color-faces-vector
    [default bold shadow italic underline bold bold-italic bold])
+ '(ansi-color-names-vector
+   ["#0a0814" "#f2241f" "#67b11d" "#b1951d" "#4f97d7" "#a31db1" "#28def0" "#b2b2b2"])
  '(company-quickhelp-color-background "#4F4F4F")
  '(company-quickhelp-color-foreground "#DCDCCC")
  '(custom-safe-themes
@@ -646,6 +651,7 @@ This function is called at the very end of Spacemacs initialization."
  '(package-selected-packages
    '(org-brain js2-refactor intero groovy-mode flycheck-rust counsel-projectile swiper ivy packed company-emacs-eclim eclim yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic doom-themes all-the-icons memoize nyan-mode proof-general company-coq company-math math-symbol-lists ibuffer-projectile zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme rainbow-mode rainbow-identifiers color-identifiers-mode selectric-mode typit mmt sudoku pacmacs dash-functional 2048-game emoji-cheat-sheet-plus company-emoji iedit scroll-restore play-crystal inf-crystal flycheck-crystal crystal-mode helm-company helm-c-yasnippet fuzzy company-web web-completion-data company-statistics clojure-snippets auto-yasnippet ac-ispell xterm-color shell-pop org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term htmlize gnuplot eshell-z eshell-prompt-extras esh-help powerline bind-key smartparens highlight f evil goto-chg projectile epl avy ghub let-alist async hydra dash s noflet ensime company sbt-mode scala-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode ahk-mode mips-mode ac-cider auto-complete smooth-scroll key-chord clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider seq queue clojure-mode helm helm-core racket-mode faceup smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit mmm-mode markdown-toc markdown-mode magit-gitflow launchctl helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))
  '(pdf-view-midnight-colors '("#DCDCCC" . "#383838"))
+ '(send-mail-function 'mailclient-send-it)
  '(vc-annotate-background nil)
  '(vc-annotate-color-map
    '((20 . "#bf616a")
@@ -672,5 +678,5 @@ This function is called at the very end of Spacemacs initialization."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(default ((((class color) (min-colors 257)) nil) (((class color) (min-colors 89)) (:background "#1c1c1c" :foreground "#eeeeee")))))
 )
