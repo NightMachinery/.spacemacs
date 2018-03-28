@@ -30,13 +30,16 @@ values."
    dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(javascript
+   '(fsharp
+     windows-scripts
+     javascript
      vimscript
      (rust :variables
            rust-format-on-save t)
      ;;crystal
      (haskell :variables haskell-enable-hindent t)
      semantic
+     lsp
      (c-c++ :variables c-c++-enable-clang-support t)
      html
      python
@@ -45,6 +48,7 @@ values."
             scala-auto-insert-asterisk-in-comments t
             scala-use-unicode-arrows t
             scala-auto-insert-asterisk-in-comments t)
+     (evil-snipe :variables evil-snipe-enable-alternate-f-and-t-behaviors t)
      autohotkey
      kotlin
      ;; ----------------------------------------------------------------
@@ -66,7 +70,7 @@ values."
      emoji
      (unicode-fonts :variables unicode-fonts-force-multi-color-on-mac t)
      git
-     (java :variables java-backend 'ensime)
+     ;; (java :variables java-backend 'ensime)
      markdown
      org
      (shell :variables
@@ -87,7 +91,7 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(typed-clojure-mode adaptive-wrap persp-projectile key-chord solarized-theme  color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
+   dotspacemacs-additional-packages '(lispyville evil-lispy dimmer focus system-packages google-this evil-string-inflection crux symon google-translate lsp-java md4rd typed-clojure-mode adaptive-wrap persp-projectile key-chord solarized-theme color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
    ;; persp-projectile switch-window company-childframe
 
    ;; A list of packages that cannot be updated.
@@ -355,10 +359,9 @@ before packages are loaded. If you are unsure, you should try in setting them in
   ;;         ("gnu"      . "elpa.gnu.org/packages/")))
   (setq frame-resize-pixelwise t)
   (when (memq window-system '(mac ns))
-    (add-to-list 'default-frame-alist '(ns-appearance . 'nil))
+    (add-to-list 'default-frame-alist '(ns-appearance . '()))
     (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
   ;;(setq default-frame-alist '((ns-transparent-titlebar . t) (ns-appearance . 'nil)))
-
   )
 
 (defun dotspacemacs/user-config ()
@@ -369,21 +372,123 @@ This is the place where most of your configurations should be done. Unless it is
 explicitly specified that a variable should be set before a package is loaded,
 you should place your code here."
 
-  ;; (global-set-key (kbd "<f7> <f8>") 'recentf-open-files)
-  (load-theme 'zenburn t t)
-  (load-theme 'solarized-light t t)
-  ;; (defun activate-zenburn ()  (if (not (or (display-graphic-p)))
-  ;;                                 (progn
-  ;;                                   (disable-theme 'solarized-light)
-  ;;                                   (enable-theme 'zenburn))
-  ;;                               ;;(enable-theme 'solarized-light)
-  ;;                                 ;;(progn
-  ;;                                   ;;(load-theme 'zenburn t))
-  ;;                               ;;(load-theme 'solarized-light t)
-  ;;                                  ;;(+ 2 2)
-  ;;                               ))
-  ;; (add-hook 'tty-setup-hook 'activate-zenburn)
+  ;; (load-theme 'zenburn t t)
+  ;; (load-theme 'solarized-light t t)
 
+
+  (load "~/.private-config.el")
+  ;;#uc
+  (spacemacs/set-leader-keys "si" 'helm-swoop-from-evil-search  "si" 'helm-swoop-from-isearch
+    )
+  ;; Instead of helm-multi-swoop-all, you can also use helm-multi-swoop-current-mode
+  (define-key helm-swoop-map (kbd "M-m") 'helm-multi-swoop-current-mode-from-helm-swoop)
+  ;; Move up and down like isearch
+  (define-key helm-swoop-map (kbd "C-r") 'helm-previous-line)
+  (define-key helm-swoop-map (kbd "C-s") 'helm-next-line)
+  (define-key helm-multi-swoop-map (kbd "C-r") 'helm-previous-line)
+  (define-key helm-multi-swoop-map (kbd "C-s") 'helm-next-line)
+  ;; (setq helm-swoop-use-fuzzy-match t)
+  ;; Optional face for line numbers
+  ;; Face name is `helm-swoop-line-number-face`
+  (setq helm-swoop-use-line-number-face t)
+  (define-key helm-swoop-map (kbd "M-i") 'helm-multi-swoop-all-from-helm-swoop)
+  (defun copy-to-clipboard ()
+    "Copies selection to x-clipboard."
+    (interactive)
+    (if (display-graphic-p)
+        (progn
+          (message "Yanked region to x-clipboard!")
+          (call-interactively 'clipboard-kill-ring-save)
+          )
+      (if (region-active-p)
+          (progn
+            (shell-command-on-region (region-beginning) (region-end) "pbcopy")
+            (message "Yanked region to clipboard!")
+            (deactivate-mark))
+        (message "No region active; can't yank to clipboard!")))
+    )
+
+  (defun paste-from-clipboard ()
+    "Pastes from x-clipboard."
+    (interactive)
+    (if (display-graphic-p)
+        (progn
+          (clipboard-yank)
+          )
+      (insert (shell-command-to-string "pbpaste"))
+      )
+    )
+  (spacemacs/set-leader-keys "oc" 'copy-to-clipboard)
+  (spacemacs/set-leader-keys "ov" 'paste-from-clipboard) ;; These override the default
+  ;; (setq dimmer-mode t)
+  (setq dimmer-fraction 0.3)
+  (defun my-lisp-init ()
+    (progn
+      ;; No need. Use the 'o' text object ;) ;; (modify-syntax-entry ?- "w") ;; Makes word-word one word.
+      ;; make evil-lispy start in the modes you want
+      ;; (evil-lispy-mode)
+      (lispy-mode 1)
+      ;; lispyville is automatically started as well.
+      ))
+  (lispyville-set-key-theme
+   '(operators
+     c-w
+     (escape insert)
+     ;; (additional-movement normal visual motion)
+     ))
+
+  (lispyville--define-key '(insert)
+    "\"" #'lispy-doublequote)           ;;Otherwise would escape doublequotes in Strings automagically.
+  (lispyville--define-key '(normal visual motion)
+    "H" #'lispyville-backward-sexp
+    "L" #'lispyville-forward-sexp
+    (kbd "M-h") #'lispyville-beginning-of-defun
+    (kbd "M-l") #'lispyville-end-of-defun
+    ;; reverse of lispy-flow
+    "{" #'lispyville-previous-opening
+    "}" #'lispyville-next-closing
+    ;; like lispy-flow
+    ;; "{" #'lispyville-next-opening
+    ;; "}" #'lispyville-previous-closing
+    ;; like lispy-left and lispy-right
+    "(" #'lispyville-backward-up-list
+    ")" #'lispyville-up-list)
+  (add-hook 'lispy-mode-hook #'lispyville-mode)
+  (add-hook 'emacs-lisp-mode-hook #'my-lisp-init)
+  (add-hook 'clojure-mode-hook #'my-lisp-init)
+  (defun conditionally-enable-lispy ()
+    (when (eq this-command 'eval-expression)
+      (lispy-mode 1)))
+  (add-hook 'minibuffer-setup-hook 'conditionally-enable-lispy)
+  ;; evil-snipe layer available ...
+  ;; (require 'evil-snipe)
+  ;; (evil-snipe-mode +1)
+  ;; (evil-snipe-override-mode +1)
+  ;; (evil-define-key 'visual evil-snipe-local-mode-map "z" 'evil-snipe-s)
+  ;; (evil-define-key 'visual evil-snipe-local-mode-map "Z" 'evil-snipe-S)
+
+  ;; (define-key evil-snipe-parent-transient-map (kbd "C-;")
+  ;;   (evilem-create 'evil-snipe-repeat
+  ;;                  :bind ((evil-snipe-scope 'buffer)
+  ;;                         (evil-snipe-enable-highlight)
+  ;;                         (evil-snipe-enable-incremental-highlight))))
+  ;; https://github.com/hlissner/evil-snipe/issues/25#issuecomment-208068419
+
+  (require 'google-translate)
+  (require 'google-translate-smooth-ui)
+  (setq google-translate-translation-directions-alist
+        '(("en" . "fa") ("fa" . "en") ("en" . "en") ))
+  (require 'lsp-java)
+  (require 'lsp-mode)
+  ;; (add-hook 'java-mode-hook #'lsp-mode) ;; ?
+  (add-hook 'java-mode-hook #'lsp-java-enable)
+  (setq lsp-java-server-install-dir "~/.emacs.d/private/lsp-servers/jdt-language-server-latest")
+  ;; Needed to disable omniscience in elisp, which makes emacs freeze.
+  (use-package semantic
+    :config
+    (setq-mode-local emacs-lisp-mode
+                     semanticdb-find-default-throttle
+                     (default-value 'semanticdb-find-default-throttle)))
   (add-hook 'Man-mode-hook
             (lambda () (local-set-key (kbd "q") 'Man-kill)))
   (spacemacs/set-leader-keys "oo" 'recentf-open-files)
@@ -392,15 +497,22 @@ you should place your code here."
   (spacemacs/set-leader-keys "oa" 'write-file)
   (spacemacs/set-leader-keys "os" 'save-some-buffers)
   (spacemacs/set-leader-keys "of" 'toggle-frame-fullscreen) ;;'spacemacs/toggle-fullscreen)
+  (spacemacs/set-leader-keys "ot" 'google-translate-smooth-translate)
+  (spacemacs/set-leader-keys "ao." 'org-cycle-agenda-files)
   (spacemacs/set-leader-keys "op" 'projectile-persp-switch-project)
   (spacemacs/set-leader-keys "oi" (lambda () (interactive "")
                                     (progn  (save-buffer)
-                                            (do-applescript "tell application \"IntelliJ IDEA 2018.1 EAP\" to activate")
-                                            )))
+                                            (do-applescript "tell application \"IntelliJ IDEA 2018.1 EAP\" to activate"))))
   (define-key key-translation-map (kbd "SPC o x") (kbd "C-x #"))
   (global-set-key (kbd "H-<right>") 'end-of-line)
   (global-set-key (kbd "H-<left>") 'back-to-indentation)
   (global-set-key (kbd "H-M-<left>") 'beginning-of-line)
+  (global-set-key (kbd "<wheel-right>") '(lambda ()
+                                           (interactive)
+                                           (scroll-left 4)))
+  (global-set-key (kbd "<wheel-left>") '(lambda ()
+                                          (interactive)
+                                          (scroll-right 4)))
   ;; (setq edit-server-url-major-mode-alist
   ;; '(("quora\\.com" . text-mode)))
   (add-hook 'edit-server-done-hook (lambda () (shell-command "open -a \"Google Chrome\"")))
@@ -413,7 +525,7 @@ you should place your code here."
   (setq password-cache-expiry nil)
   (setq projectile-mode-line "Projectile")
   (setq ns-right-command-modifier 'super)
-  (setq mac-option-modifier 'super) ; make opt key do Super
+  (setq evil-emacs-state-cursor '("chartreuse3" (bar . 2)))
   ;; (purpose-mode -1)
   ;; (require 'company-childframe)
   ;; (company-childframe-mode 1)
@@ -426,7 +538,7 @@ you should place your code here."
   ;; Default value for :pin in each use-package.
   ;;(setq use-package-always-bin "melpa-stable")
   (setq evil-want-abbrev-expand-on-insert-exit nil)
-  (setq-default evil-escape-key-sequence "ii")
+  (setq-default evil-escape-key-sequence "ii") ;; Has stopped working. Probably because lispyville
   (setq-default evil-escape-delay 0.3)
   ;; (setq special-display-buffer-names
   ;; ‘(“*sbt*” “*Help*”)) ;;Stops splitting the window for sbt buffers.
@@ -446,7 +558,7 @@ you should place your code here."
   ;;                                       (message "q restored to original mapping.")
   ;;                                       (local-set-key "q" previous-binding-for-q)))))
   (require 'view)
-  (setq view-read-only t)     ; enter view-mode for read-only files
+  (setq view-read-only t)               ; enter view-mode for read-only files
   (defun kill-window ()
     (interactive)
     (quit-window "KILL"))
@@ -479,7 +591,7 @@ you should place your code here."
   (setenv "SHELL" "/bin/bash")
   (setq shell-file-name "/bin/bash")
   (setq explicit-shell-file-name "/bin/bash") ;;Set emacs shell to bash.
-  (setenv "PAGER" "cat") ;;Required for shell mode.
+  (setenv "PAGER" "cat")                      ;;Required for shell mode.
   (add-to-list 'custom-theme-load-path "~/.emacs.d/private/themes/")
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/private/myPackages/"))
   ;; (setenv "WORKON_HOME" "~/anaconda/envs")
@@ -531,8 +643,9 @@ you should place your code here."
   (setq clojure-enable-fancify-symbols t)
   (key-chord-mode 1)
   ;; (key-chord-define evil-insert-state-map "fd" 'evil-escape)
-  (key-chord-define evil-insert-state-map "jj" 'evil-delete-backward-char)
-  (key-chord-define evil-insert-state-map "kk" 'delete-forward-char)
+  ;; (key-chord-define evil-insert-state-map "ii" 'evil-escape)
+  ;; (key-chord-define evil-insert-state-map "jj" 'evil-delete-backward-char)
+  ;; (key-chord-define evil-insert-state-map "kk" 'delete-forward-char)
   ;;(defun add-key-cider-doc () (key-chord-define evil-insert-state-map "hh" 'cider-doc))
   (key-chord-define-global "fd" '(lambda () (interactive "")
                                    (cond
@@ -644,12 +757,16 @@ This function is called at the very end of Spacemacs initialization."
  '(company-quickhelp-color-foreground "#DCDCCC")
  '(custom-safe-themes
    '("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default))
+ '(evil-search-module 'isearch)
  '(evil-want-Y-yank-to-eol nil)
  '(fci-rule-color "#343d46" t)
+ '(menu-bar-mode nil)
  '(nrepl-message-colors
    '("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3"))
+ '(ns-right-command-modifier 'super)
+ '(org-agenda-files '("~/Code/Org/treasure-plan.org"))
  '(package-selected-packages
-   '(org-brain js2-refactor intero groovy-mode flycheck-rust counsel-projectile swiper ivy packed company-emacs-eclim eclim yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic doom-themes all-the-icons memoize nyan-mode proof-general company-coq company-math math-symbol-lists ibuffer-projectile zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme rainbow-mode rainbow-identifiers color-identifiers-mode selectric-mode typit mmt sudoku pacmacs dash-functional 2048-game emoji-cheat-sheet-plus company-emoji iedit scroll-restore play-crystal inf-crystal flycheck-crystal crystal-mode helm-company helm-c-yasnippet fuzzy company-web web-completion-data company-statistics clojure-snippets auto-yasnippet ac-ispell xterm-color shell-pop org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term htmlize gnuplot eshell-z eshell-prompt-extras esh-help powerline bind-key smartparens highlight f evil goto-chg projectile epl avy ghub let-alist async hydra dash s noflet ensime company sbt-mode scala-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode ahk-mode mips-mode ac-cider auto-complete smooth-scroll key-chord clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider seq queue clojure-mode helm helm-core racket-mode faceup smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit mmm-mode markdown-toc markdown-mode magit-gitflow launchctl helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))
+   '(powershell fsharp-mode company-emacs-eclim eclim yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic doom-themes all-the-icons memoize nyan-mode proof-general company-coq company-math math-symbol-lists ibuffer-projectile zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme rainbow-mode rainbow-identifiers color-identifiers-mode selectric-mode typit mmt sudoku pacmacs dash-functional 2048-game emoji-cheat-sheet-plus company-emoji iedit scroll-restore play-crystal inf-crystal flycheck-crystal crystal-mode helm-company helm-c-yasnippet fuzzy company-web web-completion-data company-statistics clojure-snippets auto-yasnippet ac-ispell xterm-color shell-pop org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term htmlize gnuplot eshell-z eshell-prompt-extras esh-help powerline bind-key smartparens highlight f evil goto-chg projectile epl avy ghub let-alist async hydra dash s noflet ensime company sbt-mode scala-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode ahk-mode mips-mode ac-cider auto-complete smooth-scroll key-chord clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider seq queue clojure-mode helm helm-core racket-mode faceup smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit mmm-mode markdown-toc markdown-mode magit-gitflow launchctl helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))
  '(pdf-view-midnight-colors '("#DCDCCC" . "#383838"))
  '(send-mail-function 'mailclient-send-it)
  '(vc-annotate-background nil)
