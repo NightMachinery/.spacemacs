@@ -409,14 +409,14 @@ you should place your code here."
   (require 'flycheck-joker)
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)
-    (exec-path-from-shell-copy-env "JAVA_HOME"))  ;Idk if this is necessary.
+    (exec-path-from-shell-copy-env "JAVA_HOME")) ;Idk if this is necessary.
   (setenv "SHELL" "/bin/bash")
   (setq shell-file-name "/bin/bash")
   (setq explicit-shell-file-name "/bin/bash") ;;Set emacs shell to bash.
   (setenv "PAGER" "cat")                      ;;Required for shell mode.
 
   ;;#uc
-  (push 'cider--debug-mode evil-snipe-disabled-modes)
+  ;; (push 'cider--debug-mode evil-snipe-disabled-modes)
   (add-hook 'cider--debug-mode-hook (lambda ()
                                       (if (bound-and-true-p cider--debug-mode)
                                           (turn-off-evil-snipe-mode)
