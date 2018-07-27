@@ -386,6 +386,7 @@ you should place your code here."
   ;; (load-theme 'solarized-light t t)
 
 
+  (require 'cider)
   (load "~/.private-config.el")
   (add-to-list 'custom-theme-load-path "~/.emacs.d/private/themes/")
   (add-to-list 'load-path (expand-file-name "~/.emacs.d/private/myPackages/"))
@@ -423,13 +424,29 @@ you should place your code here."
     (with-eval-after-load 'company (add-to-list 'company-backends 'company-jedi)))
   (defun my/setup-overtone-hotkeys ()
     (interactive "")
-    (define-key evil-normal-state-map (kbd "] a") '(lambda () (interactive "")
+    (define-key evil-normal-state-map (kbd "] '") '(lambda () (interactive "")
                                                      (cider-nrepl-sync-request:eval  "(overtone.live/stop)")))
     (define-key evil-normal-state-map (kbd "] r") '(lambda () (interactive "")
                                                      (cider-nrepl-sync-request:eval  "(overtone.live/recording-stop)")))
     (define-key evil-normal-state-map (kbd "[ r") '(lambda (file-name) (interactive "sSave to:")
-                                                     (cider-nrepl-sync-request:eval  (concat "(overtone.live/recording-start \"/Base/- Art/Audio/i-laugh/" file-name "\")"))))
+                                                     (cider-nrepl-sync-request:eval  (concat "(overtone.live/recording-start \"/Base/- Art/Audio/i-laugh/" file-name ".wav\")"))))
     )
+  (defun my-select-current-line ()
+    (interactive)
+    (move-beginning-of-line nil)
+    (set-mark-command nil)
+    (move-end-of-line nil)
+    (setq deactivate-mark nil))
+  (defun my-cider-eval-paragraph ()
+    (interactive) 
+    (save-excursion
+      (mark-paragraph) 
+      (command-execute 'cider-eval-region)))
+  (defun my-cider-eval-line ()
+    (interactive) 
+    (save-mark-and-excursion
+      (my-select-current-line) 
+      (command-execute 'cider-eval-region)))
   ;; (defun python-start-and-load-buffer ()
   ;;   "Starts or switches to the REPL and loads the current buffer."
   ;;   (interactive)
@@ -493,6 +510,7 @@ you should place your code here."
                                                   (evil-insert-state 1)))
   (add-hook 'cider-connected-hook (lambda () (cider-load-file (expand-file-name "lispy-clojure.clj" lispy-site-directory)))) ;; TODO Is this still necessary?
   ;; https://github.com/abo-abo/lispy/issues/418
+  (evil-define-key 'normal clojure-mode-map (kbd ", e l") #'my-cider-eval-line)
   (add-hook 'clojure-mode-hook #'bluerose-prettify-clojure)
   (add-hook 'cider-repl-mode-hook #'bluerose-prettify-clojure)
   (defun bluerose-prettify-clojure ()
@@ -614,7 +632,7 @@ you should place your code here."
     "\"" #'lispy-doublequote) ;;Otherwise would escape doublequotes in Strings automagically.
 
   (lispyville--define-key '(normal visual)
-    "p" #'lispy-paste)
+    "P" #'lispy-paste)
   (lispyville--define-key '(normal visual motion)
     "H" #'lispyville-backward-sexp
     "L" #'lispyville-forward-sexp
@@ -677,8 +695,8 @@ you should place your code here."
   (spacemacs/set-leader-keys "ao." 'org-cycle-agenda-files)
   (spacemacs/set-leader-keys "op" 'projectile-persp-switch-project)
   (spacemacs/set-leader-keys "oi" '(lambda () (interactive "")
-                                    (progn  (save-buffer)
-                                            (do-applescript "tell application \"IntelliJ IDEA 2018.1\" to activate"))))
+                                     (progn  (save-buffer)
+                                             (do-applescript "tell application \"IntelliJ IDEA 2018.1\" to activate"))))
   (define-key key-translation-map (kbd "SPC o x") (kbd "C-x #"))
   (global-set-key (kbd "H-<up>") 'move-text-up)
   (global-set-key (kbd "H-<down>") 'move-text-down)
