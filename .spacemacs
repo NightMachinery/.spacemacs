@@ -105,7 +105,7 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(lispyville company-jedi evil-lispy dimmer focus system-packages google-this evil-string-inflection crux command-log-mode zoom atomic-chrome cider-hydra flycheck-pos-tip kibit-helper flycheck-joker sayid flycheck-clojure helm-fuzzier smart-mode-line highlight-indent-guides ediprolog clomacs exec-path-from-shell osx-clipboard symon google-translate lsp-java md4rd typed-clojure-mode adaptive-wrap persp-projectile key-chord solarized-theme color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
+   dotspacemacs-additional-packages '(lispyville company-jedi evil-lispy dimmer focus system-packages google-this evil-string-inflection crux command-log-mode zoom atomic-chrome cider-hydra flycheck-pos-tip kibit-helper flycheck-joker sayid flycheck-clojure helm-fuzzier smart-mode-line highlight-indent-guides ediprolog clomacs exec-path-from-shell osx-clipboard flymake-shellcheck symon google-translate lsp-java md4rd typed-clojure-mode adaptive-wrap persp-projectile key-chord solarized-theme color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
    ;; persp-projectile switch-window company-childframe
 
    ;; A list of packages that cannot be updated.
@@ -459,10 +459,13 @@ you should place your code here."
   ;;     (spacemacs/python-start-or-switch-repl)
   ;;     (spacemacs/python-shell-send-buffer-switch)))
   ;;#uc
+  (require 'flymake-shellcheck)
+  (setq shell-file-name "/bin/zsh")
+  (add-hook 'sh-mode-hook 'flymake-shellcheck-load)
   (add-hook 'octave-mode-hook
-        (lambda () (progn (setq octave-comment-char ?%)
-                          (setq comment-start "% ")
-                          (setq comment-add 0))))
+            (lambda () (progn (setq octave-comment-char ?%)
+                         (setq comment-start "% ")
+                         (setq comment-add 0))))
   (osx-clipboard-mode +1)
   (eval-after-load 'cider
     '(progn
@@ -500,6 +503,12 @@ you should place your code here."
   (require 'highlight-indent-guides)
   (setq highlight-indent-guides-responsive 'nil)
   (setq highlight-indent-guides-method 'fill) ;; The default is fill.
+  (defun kill-all-comments ()
+    "Kills all the comments in the code, without putting them in the killring."
+    (interactive)
+    (goto-char (point-min))
+    (let (kill-ring)
+      (comment-kill (count-lines (point-min) (point-max)))))
   (defun escape-doublequotes-at-car-of-kill-ring ()
     "Escape doublequotes in car of kill-ring "
     (interactive)
