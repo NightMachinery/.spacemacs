@@ -38,6 +38,7 @@ values."
      fsharp
      windows-scripts
      javascript
+     ocaml
      idris
      fasd
      xclipboard
@@ -53,7 +54,7 @@ values."
            rust-format-on-save t)
      ;;crystal
      (haskell :variables haskell-enable-hindent t)
-     semantic
+     ;; semantic
      lsp
      (c-c++ :variables c-c++-enable-clang-support t)
      html
@@ -72,7 +73,7 @@ values."
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
      helm
-     (auto-completion :variables
+     (auto-completion :disabled-for ocaml :variables
                       auto-completion-enable-help-tooltip t
                       auto-completion-enable-snippets-in-popup t) ;; doesn't work with the mac port version of emacs.
      ;; better-defaults
@@ -112,7 +113,7 @@ values."
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
-   dotspacemacs-excluded-packages '()
+   dotspacemacs-excluded-packages '(flycheck-ocaml)
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
    ;; `used-only' installs only explicitly used packages and uninstall any
@@ -298,7 +299,7 @@ values."
    ;; A value from the range (0..100), in increasing opacity, which describes
    ;; the transparency level of a frame when it's active or selected.
    ;; Transparency can be toggled through `toggle-transparency'. (default 90)
-   dotspacemacs-active-transparency 90
+   dotspacemacs-active-transparency 30
    ;; A value from the range (0..100), in increasing opacity, which describes
    ;; the transparency level of a frame when it's inactive or deselected.
    ;; Transparency can be toggled through `toggle-transparency'. (default 90)
@@ -460,6 +461,50 @@ you should place your code here."
   ;;     (spacemacs/python-start-or-switch-repl)
   ;;     (spacemacs/python-shell-send-buffer-switch)))
   ;;#uc
+
+  (setq evil-want-fine-undo t)
+ ;;  (advice-add 'undo-auto--last-boundary-amalgamating-number
+;;               :override #'ignore)
+;;   (defun undo-auto--undoable-change ()
+;;     "The symbol `undo-auto--undoable-change' is hard-coded in `insdel.c`
+;; Called after every undoable buffer change."
+;;     ;;  (unless undo-auto-current-boundary-timer
+;;     ;;    (setq undo-auto-current-boundary-timer
+;;     ;;            (run-at-time 0.5 nil #'undo-auto--boundary-timer)))
+;;     (add-to-list 'undo-auto--undoably-changed-buffers (current-buffer)))
+;;   (defun undo-auto-amalgamate ()
+;;   "The symbol `auto-undo-amalgamate' is hard-coded in `cmds.c`.
+;;   Amalgamate undo if necessary.
+;;   This function can be called before an amalgamating command.  It
+;;   removes the previous `undo-boundary' if a series of such calls
+;;   have been made.  By default `self-insert-command' and `delete-char' are
+;;   the only amalgamating commands, although this function could be called
+;;   by any command wishing to have this behavior."
+;;     ;;  (let ((last-amalgamating-count
+;;     ;;         (undo-auto--last-boundary-amalgamating-number)))
+;;     ;;    (setq undo-auto--this-command-amalgamating t)
+;;     ;;    (when
+;;     ;;        last-amalgamating-count
+;;     ;;      (if
+;;     ;;          (and
+;;     ;;           (< last-amalgamating-count 20)
+;;     ;;           (eq this-command last-command))
+;;     ;;          ;; Amalgamate all buffers that have changed.
+;;     ;;          (dolist (b (cdr undo-auto--last-boundary-cause))
+;;     ;;            (when (buffer-live-p b)
+;;     ;;              (with-current-buffer
+;;     ;;                  b
+;;     ;;                (when
+;;     ;;                    ;; The head of `buffer-undo-list' is nil.
+;;     ;;                    ;; `car-safe' doesn't work because
+;;     ;;                    ;; `buffer-undo-list' need not be a list!
+;;     ;;                    (and (listp buffer-undo-list)
+;;     ;;                         (not (car buffer-undo-list)))
+;;     ;;                  (setq buffer-undo-list
+;;     ;;                        (cdr buffer-undo-list))))))
+;;     ;;        (setq undo-auto--last-boundary-cause 0))))
+;;     nil)
+  (setq company-global-modes '(not tuareg-mode))
   (require 'flymake-shellcheck)
   (setq shell-file-name "/bin/zsh")
   (add-hook 'sh-mode-hook 'flymake-shellcheck-load)
@@ -467,6 +512,11 @@ you should place your code here."
             (lambda () (progn (setq octave-comment-char ?%)
                          (setq comment-start "% ")
                          (setq comment-add 0))))
+
+  (evil-define-key 'normal tuareg-mode-map (kbd ", e b") #'tuareg-eval-buffer)
+  (add-hook 'tuareg-mode-hook
+            (lambda () (progn
+                    (company-mode -1))))
   (osx-clipboard-mode +1)
   (eval-after-load 'cider
     '(progn
@@ -595,7 +645,7 @@ you should place your code here."
   ;; (linum-relative-global-mode) #Broken API
   (spacemacs/toggle-relative-line-numbers-on)
   ;; (with-eval-after-load 'clojure-mode
-    ;; (sayid-setup-package)) ;; Broken after update
+  ;; (sayid-setup-package)) ;; Broken after update
   (with-eval-after-load 'flycheck
     ;; (flycheck-clojure-setup)
     (flycheck-pos-tip-mode))
@@ -700,6 +750,7 @@ you should place your code here."
   (add-hook 'lispy-mode-hook #'lispyville-mode)
   (add-hook 'emacs-lisp-mode-hook #'my-lisp-init)
   (add-hook 'clojure-mode-hook  #'my-lisp-init)
+  (add-hook 'scheme-mode-hook #'my-lisp-init)
   (defun conditionally-enable-lispy ()
     (when (eq this-command 'eval-expression)
       (lispy-mode 1)))
@@ -728,11 +779,11 @@ you should place your code here."
   ;; (add-hook 'java-mode-hook #'lsp-java-enable)
   ;; (setq lsp-java-server-install-dir "~/.emacs.d/private/lsp-servers/jdt-language-server-latest")
   ;; Needed to disable omniscience in elisp, which makes emacs freeze.
-  (use-package semantic
-    :config
-    (setq-mode-local emacs-lisp-mode
-                     semanticdb-find-default-throttle
-                     (default-value 'semanticdb-find-default-throttle)))
+  ;; (use-package semantic
+  ;;   :config
+  ;;   (setq-mode-local emacs-lisp-mode
+  ;;                    semanticdb-find-default-throttle
+  ;;                    (default-value 'semanticdb-find-default-throttle)))
   (add-hook 'Man-mode-hook
             (lambda () (local-set-key (kbd "q") 'Man-kill)))
   (spacemacs/set-leader-keys "oo" 'recentf-open-files)
@@ -1008,7 +1059,7 @@ This function is called at the very end of Spacemacs initialization."
  '(nrepl-message-colors
    '("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3"))
  '(package-selected-packages
-   '(idris-mode prop-menu company-emacs-eclim eclim yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic doom-themes all-the-icons memoize nyan-mode proof-general company-coq company-math math-symbol-lists ibuffer-projectile zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme rainbow-mode rainbow-identifiers color-identifiers-mode selectric-mode typit mmt sudoku pacmacs dash-functional 2048-game emoji-cheat-sheet-plus company-emoji iedit scroll-restore play-crystal inf-crystal flycheck-crystal crystal-mode helm-company helm-c-yasnippet fuzzy company-web web-completion-data company-statistics clojure-snippets auto-yasnippet ac-ispell xterm-color shell-pop org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term htmlize gnuplot eshell-z eshell-prompt-extras esh-help powerline bind-key smartparens highlight f evil goto-chg projectile epl avy ghub let-alist async hydra dash s noflet ensime company sbt-mode scala-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode ahk-mode mips-mode ac-cider auto-complete smooth-scroll key-chord clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider seq queue clojure-mode helm helm-core racket-mode faceup smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit mmm-mode markdown-toc markdown-mode magit-gitflow launchctl helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))
+   '(yasnippet-snippets writeroom-mode visual-fill-column sql-indent racer pipenv org-brain merlin meghanada md4rd tree-mode magit-svn lsp-ui lsp-java json-navigator hierarchy idris-mode prop-menu helm-xref groovy-mode geiser fsharp-mode elm-mode reformatter elfeed-goodies ace-jump-mode doom-modeline eldoc-eval shrink-path counsel-projectile counsel company-lsp clomacs centered-cursor-mode ccls browse-at-remote anzu window-purpose imenu-list lispy zoutline swiper ivy rust-mode lsp-mode transient js2-mode sesman spinner company-emacs-eclim eclim yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic doom-themes all-the-icons memoize nyan-mode proof-general company-coq company-math math-symbol-lists ibuffer-projectile zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme rainbow-mode rainbow-identifiers color-identifiers-mode selectric-mode typit mmt sudoku pacmacs dash-functional 2048-game emoji-cheat-sheet-plus company-emoji iedit scroll-restore play-crystal inf-crystal flycheck-crystal crystal-mode helm-company helm-c-yasnippet fuzzy company-web web-completion-data company-statistics clojure-snippets auto-yasnippet ac-ispell xterm-color shell-pop org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term htmlize gnuplot eshell-z eshell-prompt-extras esh-help powerline bind-key smartparens highlight f evil goto-chg projectile epl avy ghub let-alist async hydra dash s noflet ensime company sbt-mode scala-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode ahk-mode mips-mode ac-cider auto-complete smooth-scroll key-chord clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider seq queue clojure-mode helm helm-core racket-mode faceup smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit mmm-mode markdown-toc markdown-mode magit-gitflow launchctl helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))
  '(pdf-view-midnight-colors '("#DCDCCC" . "#383838"))
  '(vc-annotate-background nil)
  '(vc-annotate-color-map
