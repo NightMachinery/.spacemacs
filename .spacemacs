@@ -461,6 +461,12 @@ you should place your code here."
   ;;     (spacemacs/python-start-or-switch-repl)
   ;;     (spacemacs/python-shell-send-buffer-switch)))
   ;;#uc
+  (defun my/diff-buffers (buffer-A buffer-B)
+    "Run Ediff on a pair of buffers, BUFFER-A and BUFFER-B."
+    (interactive
+     (list (read-buffer "buffer1: " (current-buffer))
+           (read-buffer "buffer2: " (current-buffer))))
+    (ediff-buffers-internal buffer-A buffer-B nil nil 'ediff-buffers))
 
   (setq evil-want-fine-undo t)
   ;;  (advice-add 'undo-auto--last-boundary-amalgamating-number
