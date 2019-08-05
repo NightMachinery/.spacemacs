@@ -454,6 +454,7 @@ you should place your code here."
     (save-mark-and-excursion
       (my-select-current-line) 
       (command-execute 'cider-eval-region)))
+  (require 'smartparens)
   ;; (defun python-start-and-load-buffer ()
   ;;   "Starts or switches to the REPL and loads the current buffer."
   ;;   (interactive)
@@ -461,6 +462,8 @@ you should place your code here."
   ;;     (spacemacs/python-start-or-switch-repl)
   ;;     (spacemacs/python-shell-send-buffer-switch)))
   ;;#uc
+  (spacemacs/toggle-smartparens-globally-off) ;; This is the shit that keeps messing up the delimiters.
+  (remove-hook 'prog-mode-hook #'smartparens-mode)
   (defun my/diff-buffers (buffer-A buffer-B)
     "Run Ediff on a pair of buffers, BUFFER-A and BUFFER-B."
     (interactive
@@ -516,23 +519,23 @@ you should place your code here."
   (add-hook 'sh-mode-hook 'flymake-shellcheck-load)
   (add-hook 'octave-mode-hook
             (lambda () (progn (setq octave-comment-char ?%)
-                         (setq comment-start "% ")
-                         (setq comment-add 0))))
+                              (setq comment-start "% ")
+                              (setq comment-add 0))))
 
   (evil-define-key 'normal tuareg-mode-map (kbd ", e b") #'tuareg-eval-buffer)
   (add-hook 'tuareg-mode-hook
             (lambda () (progn
-                    (company-mode -1))))
+                         (company-mode -1))))
   (setq manquery "^[0-9]+\\s-+")
-  (add-hook 'Man-mode-hook
-            (lambda () (progn
-                    (defun helm-swoop-pre-input-optimize ($query)
-                      $query) ;; disable swoop escaping
-                    (spacemacs/toggle-maximize-buffer) ;; Breaks helm-man-woman
-                    (setq helm-swoop-pre-input-function
-                          (lambda () (progn
-                                                                manquery))))))
-    ;; (defun helm-swoop-pre-input-optimize ($query)
+  (when nil (add-hook 'Man-mode-hook
+             (lambda () (progn
+                     (defun helm-swoop-pre-input-optimize ($query)
+                       $query) ;; disable swoop escaping
+                     ;; (spacemacs/toggle-maximize-buffer) ;; Breaks helm-man-woman
+                     (setq helm-swoop-pre-input-function
+                           (lambda () (progn
+                                   manquery)))))))
+  ;; (defun helm-swoop-pre-input-optimize ($query)
   ;;   (when $query
   ;;     (let (($regexp (list '("\+" . "\\+")
   ;;                          '("\*" . "\\\\*")
