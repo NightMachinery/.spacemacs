@@ -38,6 +38,7 @@ values."
      fsharp
      windows-scripts
      javascript
+     json
      ocaml
      idris
      fasd
@@ -515,7 +516,7 @@ you should place your code here."
   ;;     nil)
   (setq company-global-modes '(not tuareg-mode))
   (require 'flymake-shellcheck)
-  (setq shell-file-name "/bin/zsh")
+  (setq shell-file-name "zsh")
   (add-hook 'sh-mode-hook 'flymake-shellcheck-load)
   (add-hook 'octave-mode-hook
             (lambda () (progn (setq octave-comment-char ?%)
