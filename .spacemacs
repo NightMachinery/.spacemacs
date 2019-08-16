@@ -464,9 +464,14 @@ you should place your code here."
   ;;     (spacemacs/python-start-or-switch-repl)
   ;;     (spacemacs/python-shell-send-buffer-switch)))
   ;;#uc
+  (defun night/make-buffer-executable ()
+    (interactive)
+    (shell-command
+		 (concat "chmod u+x " (shell-quote-argument (buffer-file-name)))))
+  (add-hook 'after-save-hook 'executable-make-buffer-file-executable-if-script-p)
   (spacemacs/toggle-smartparens-globally-off) ;; This is the shit that keeps messing up the delimiters.
   (remove-hook 'prog-mode-hook #'smartparens-mode)
-  (defun my/diff-buffers (buffer-A buffer-B)
+  (defun night/diff-buffers (buffer-A buffer-B)
     "Run Ediff on a pair of buffers, BUFFER-A and BUFFER-B."
     (interactive
      (list (read-buffer "buffer1: " (current-buffer))
