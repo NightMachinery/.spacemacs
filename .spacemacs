@@ -391,7 +391,7 @@ before packages are loaded. If you are unsure, you should try in setting them in
   ;; (setenv "JAVA_HOME" "/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home")
   )
 
-defun dotspacemacs/user-config ()
+(defun dotspacemacs/user-config ()
   "Configuration function for user code.
 This function is called at the very end of Spacemacs initialization after
 layers configuration.
@@ -1004,7 +1004,7 @@ you should place your code here."
   ;; (setq smooth-scroll/vscroll-step-size 5        ) ;; Set the speed right
   ;;(setq geiser-racket-binary "/Applications/Racket v6.10.1/bin/racket")
   (key-chord-mode 1)
-  (setq-default evil-escape-key-sequence "kl") ;; Has stopped working. Probably because lispyville
+  ;; (setq-default evil-escape-key-sequence "jk") ;; Has stopped working. Probably because lispyville
   ;; (key-chord-define evil-insert-state-map "fd" 'evil-escape)
   ;; (key-chord-define evil-insert-state-map "ll" 'evil-escape)
   ;; (key-chord-define evil-insert-state-map "jj" 'evil-delete-backward-char)
