@@ -30,7 +30,8 @@ values."
    dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(lua
+   '(ruby
+     lua
      octave
      csv
      sql
@@ -60,7 +61,14 @@ values."
      lsp
      (c-c++ :variables c-c++-enable-clang-support t)
      html
-     (python :variables python-backend 'anaconda)
+     ;; (python :variables python-backend 'anaconda)
+     ;; (python :variables python-backend 'lsp python-lsp-server 'pyls ) ; python-pipenv-activate t
+     (python :variables
+             python-backend 'lsp
+             python-lsp-server 'mspyls
+             python-lsp-git-root "~/code/Misc/python-language-server/"
+             )
+     dap
      chrome
      (scala :variables
             scala-auto-insert-asterisk-in-comments t
@@ -109,7 +117,7 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(lispyville company-jedi evil-lispy dimmer focus system-packages google-this evil-string-inflection crux command-log-mode zoom atomic-chrome cider-hydra flycheck-pos-tip kibit-helper flycheck-joker sayid flycheck-clojure helm-fuzzier smart-mode-line highlight-indent-guides ediprolog clomacs exec-path-from-shell osx-clipboard flymake-shellcheck symon google-translate md4rd typed-clojure-mode adaptive-wrap persp-projectile key-chord solarized-theme color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
+   dotspacemacs-additional-packages '(evil-easymotion lispyville company-jedi evil-lispy dimmer focus system-packages google-this evil-string-inflection crux command-log-mode zoom atomic-chrome cider-hydra flycheck-pos-tip kibit-helper sayid flycheck-clojure helm-fuzzier smart-mode-line highlight-indent-guides ediprolog clomacs exec-path-from-shell osx-clipboard flymake-shellcheck symon google-translate md4rd adaptive-wrap persp-projectile key-chord solarized-theme color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
    ;; persp-projectile switch-window company-childframe
 
    ;; A list of packages that cannot be updated.
@@ -350,7 +358,7 @@ values."
    ;; List of search tool executable names. Spacemacs uses the first installed
    ;; tool of the list. Supported tools are `ag', `pt', `ack' and `grep'.
    ;; (default '("ag" "pt" "ack" "grep"))
-   dotspacemacs-search-tools '("ag" "pt" "ack" "grep")
+   dotspacemacs-search-tools '("rg" "ag" "pt" "ack" "grep")
    ;; The default package repository used if no explicit repository has been
    ;; specified with an installed package.
    ;; Not used for now. (default nil)
@@ -383,7 +391,7 @@ before packages are loaded. If you are unsure, you should try in setting them in
   ;; (setenv "JAVA_HOME" "/Library/Java/JavaVirtualMachines/jdk1.8.0_121.jdk/Contents/Home")
   )
 
-(defun dotspacemacs/user-config ()
+defun dotspacemacs/user-config ()
   "Configuration function for user code.
 This function is called at the very end of Spacemacs initialization after
 layers configuration.
@@ -419,19 +427,17 @@ you should place your code here."
                   (t
                    (message "The image seems to be malformed."))))
         (message "Point is not at an image."))))
-  ;; (setenv "WORKON_HOME" "~/anaconda/envs")
-  (require 'flycheck-joker)
-  (require 'exec-path-from-shell)
-  (exec-path-from-shell-initialize)
-  ;; (osx/post-init-exec-path-from-shell)
-  (exec-path-from-shell-copy-env "JAVA_HOME") ;Idk if this is necessary.
+  ;; (require 'exec-path-from-shell)
+  ;; (exec-path-from-shell-initialize)
+  ;; (exec-path-from-shell-copy-env "JAVA_HOME") ;Idk if this is necessary.
   (setenv "SHELL" "/bin/bash")
   (setq shell-file-name "/bin/bash")
   (setq explicit-shell-file-name "/bin/bash") ;;Set emacs shell to bash.
   (setenv "PAGER" "cat")                      ;;Required for shell mode.
 
   (defun my/python-mode-hook ()
-    (with-eval-after-load 'company (add-to-list 'company-backends 'company-jedi)))
+    ;; (with-eval-after-load 'company (add-to-list 'company-backends 'company-jedi))
+    )
   (defun my/setup-overtone-hotkeys ()
     (interactive "")
     (define-key evil-normal-state-map (kbd "] '") '(lambda () (interactive "")
@@ -464,6 +470,13 @@ you should place your code here."
   ;;     (spacemacs/python-start-or-switch-repl)
   ;;     (spacemacs/python-shell-send-buffer-switch)))
   ;;#uc
+  (evilem-default-keybindings "e")
+  ;; (evilem-define (kbd "e s") 'evil-snipe-s) ;; Doesn't work
+  ;; (elpy-enable)
+  (require 'dap-python)
+  (setenv "WORKON_HOME" "~/anaconda/envs")
+  (pyvenv-activate  "~/anaconda/bin")   ; possibly bad?
+  ;; (pyvenv-mode 1) ;; Possibly useful?
   (defun night/make-buffer-executable ()
     (interactive)
     (shell-command
@@ -535,13 +548,13 @@ you should place your code here."
                          (company-mode -1))))
   (setq manquery "^[0-9]+\\s-+")
   (when nil (add-hook 'Man-mode-hook
-             (lambda () (progn
-                     (defun helm-swoop-pre-input-optimize ($query)
-                       $query) ;; disable swoop escaping
-                     ;; (spacemacs/toggle-maximize-buffer) ;; Breaks helm-man-woman
-                     (setq helm-swoop-pre-input-function
-                           (lambda () (progn
-                                   manquery)))))))
+                      (lambda () (progn
+                                   (defun helm-swoop-pre-input-optimize ($query)
+                                     $query) ;; disable swoop escaping
+                                   ;; (spacemacs/toggle-maximize-buffer) ;; Breaks helm-man-woman
+                                   (setq helm-swoop-pre-input-function
+                                         (lambda () (progn
+                                                      manquery)))))))
   ;; (defun helm-swoop-pre-input-optimize ($query)
   ;;   (when $query
   ;;     (let (($regexp (list '("\+" . "\\+")
@@ -700,7 +713,7 @@ you should place your code here."
     (setq zoom-size '(0.618 . 0.618))
     (spacemacs/set-leader-keys "tg" 'zoom-mode)) ;; TODO TOCHECK Does it work?
   ;; (require 'auto-scroll)
-  (setq dotspacemacs-zone-out-when-idle 300) ;; Activates Zone in specified seconds.
+  ;; (setq dotspacemacs-zone-out-when-idle 300) ;; Activates Zone in specified seconds.
   (require 'helm)
   (require 'helm-swoop)
   (spacemacs/set-leader-keys "si" 'helm-swoop-from-evil-search  "si" 'helm-swoop-from-isearch
@@ -849,6 +862,21 @@ you should place your code here."
   ;; (setq edit-server-url-major-mode-alist
   ;; '(("quora\\.com" . text-mode)))
   (add-hook 'edit-server-done-hook (lambda () (shell-command "open -a \"Google Chrome\"")))
+  (defun night/ssh-pre ()
+    (interactive)
+    ;; https://www.gnu.org/software/emacs/manual/html_node/tramp/Frequently-Asked-Questions.html
+    (setq remote-file-name-inhibit-cache nil)
+    (setq vc-ignore-dir-regexp
+          (format "\\(%s\\)\\|\\(%s\\)"
+                  vc-ignore-dir-regexp
+                  tramp-file-name-regexp))
+    ;; Bug in Spacemacs https://github.com/syl20bnr/spacemacs/issues/11514
+    (remove-hook 'python-mode-hook 'spacemacs//init-eldoc-python-mode))
+  (defun night/tramp-refresh ()
+    (interactive)
+    (recentf-cleanup)
+    (tramp-cleanup-all-buffers)
+    (tramp-cleanup-all-connections))
   (defun ssh-corra ()
     (interactive)
     (dired "/ssh:mary@198.143.181.104:/"))
@@ -858,9 +886,11 @@ you should place your code here."
   (defun ssh-win ()
     (interactive)
     (dired "/ssh:Evar@10.211.55.3:/"))
-  (defun ssh-db ()
+  (defun ssh-eva ()
     (interactive)
-    (dired "/ssh:db@194.34.160.14:/"))
+    (dired "/ssh:eva@82.102.10.121:/home/eva/scripts/"))
+  (setq tramp-ssh-controlmaster-options
+        "-o ControlMaster=auto -o ControlPath='tramp.%%C' -o ControlPersist=yes")
   (setq password-cache-expiry nil)
   (setq projectile-mode-line "Projectile")
   (setq ns-right-command-modifier 'super)
@@ -879,7 +909,6 @@ you should place your code here."
   ;; Default value for :pin in each use-package.
   ;;(setq use-package-always-bin "melpa-stable")
   (setq evil-want-abbrev-expand-on-insert-exit nil)
-  (setq-default evil-escape-key-sequence "ii") ;; Has stopped working. Probably because lispyville
   (setq-default evil-escape-delay 0.3)
   ;; (setq special-display-buffer-names
   ;; ‘(“*sbt*” “*Help*”)) ;;Stops splitting the window for sbt buffers.
@@ -975,8 +1004,9 @@ you should place your code here."
   ;; (setq smooth-scroll/vscroll-step-size 5        ) ;; Set the speed right
   ;;(setq geiser-racket-binary "/Applications/Racket v6.10.1/bin/racket")
   (key-chord-mode 1)
+  (setq-default evil-escape-key-sequence "kl") ;; Has stopped working. Probably because lispyville
   ;; (key-chord-define evil-insert-state-map "fd" 'evil-escape)
-  ;; (key-chord-define evil-insert-state-map "ii" 'evil-escape)
+  ;; (key-chord-define evil-insert-state-map "ll" 'evil-escape)
   ;; (key-chord-define evil-insert-state-map "jj" 'evil-delete-backward-char)
   ;; (key-chord-define evil-insert-state-map "kk" 'delete-forward-char)
   ;; (defun add-key-cider-doc () (key-chord-define evil-insert-state-map "hh" 'cider-doc))
@@ -1017,7 +1047,7 @@ you should place your code here."
   ;; (setq flycheck-scalastylerc
   ;;       "/Base/- Code/Resources/scalastyle_config.xml")
   ;;(line-number-mode t)
-  )
+  
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
@@ -1089,17 +1119,22 @@ This function is called at the very end of Spacemacs initialization."
  '(company-quickhelp-color-background "#4F4F4F")
  '(company-quickhelp-color-foreground "#DCDCCC")
  '(custom-safe-themes
-   '("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default))
+   (quote
+    ("bffa9739ce0752a37d9b1eee78fc00ba159748f50dc328af4be661484848e476" default)))
  '(evil-want-Y-yank-to-eol nil)
  '(fci-rule-color "#343d46" t)
+ '(helm-ff-lynx-style-map t)
  '(nrepl-message-colors
-   '("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3"))
+   (quote
+    ("#CC9393" "#DFAF8F" "#F0DFAF" "#7F9F7F" "#BFEBBF" "#93E0E3" "#94BFF3" "#DC8CC3")))
  '(package-selected-packages
-   '(company-lua lua-mode company-emacs-eclim eclim yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic doom-themes all-the-icons memoize nyan-mode proof-general company-coq company-math math-symbol-lists ibuffer-projectile zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme rainbow-mode rainbow-identifiers color-identifiers-mode selectric-mode typit mmt sudoku pacmacs dash-functional 2048-game emoji-cheat-sheet-plus company-emoji iedit scroll-restore play-crystal inf-crystal flycheck-crystal crystal-mode helm-company helm-c-yasnippet fuzzy company-web web-completion-data company-statistics clojure-snippets auto-yasnippet ac-ispell xterm-color shell-pop org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term htmlize gnuplot eshell-z eshell-prompt-extras esh-help powerline bind-key smartparens highlight f evil goto-chg projectile epl avy ghub let-alist async hydra dash s noflet ensime company sbt-mode scala-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode ahk-mode mips-mode ac-cider auto-complete smooth-scroll key-chord clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider seq queue clojure-mode helm helm-core racket-mode faceup smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit mmm-mode markdown-toc markdown-mode magit-gitflow launchctl helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line))
- '(pdf-view-midnight-colors '("#DCDCCC" . "#383838"))
+   (quote
+    (dap-mode bui company-emacs-eclim eclim yapfify pyvenv pytest pyenv-mode py-isort pip-requirements live-py-mode hy-mode helm-pydoc cython-mode company-anaconda anaconda-mode pythonic doom-themes all-the-icons memoize nyan-mode proof-general company-coq company-math math-symbol-lists ibuffer-projectile zenburn-theme zen-and-art-theme white-sand-theme underwater-theme ujelly-theme twilight-theme twilight-bright-theme twilight-anti-bright-theme toxi-theme tao-theme tangotango-theme tango-plus-theme tango-2-theme sunny-day-theme sublime-themes subatomic256-theme subatomic-theme spacegray-theme soothe-theme solarized-theme soft-stone-theme soft-morning-theme soft-charcoal-theme smyx-theme seti-theme reverse-theme rebecca-theme railscasts-theme purple-haze-theme professional-theme planet-theme phoenix-dark-pink-theme phoenix-dark-mono-theme organic-green-theme omtose-phellack-theme oldlace-theme occidental-theme obsidian-theme noctilux-theme naquadah-theme mustang-theme monokai-theme monochrome-theme molokai-theme moe-theme minimal-theme material-theme majapahit-theme madhat2r-theme lush-theme light-soap-theme jbeans-theme jazz-theme ir-black-theme inkpot-theme heroku-theme hemisu-theme hc-zenburn-theme gruvbox-theme gruber-darker-theme grandshell-theme gotham-theme gandalf-theme flatui-theme flatland-theme farmhouse-theme exotica-theme espresso-theme dracula-theme django-theme darktooth-theme autothemer darkokai-theme darkmine-theme darkburn-theme dakrone-theme cyberpunk-theme color-theme-sanityinc-tomorrow color-theme-sanityinc-solarized clues-theme cherry-blossom-theme busybee-theme bubbleberry-theme birds-of-paradise-plus-theme badwolf-theme apropospriate-theme anti-zenburn-theme ample-zen-theme ample-theme alect-themes afternoon-theme rainbow-mode rainbow-identifiers color-identifiers-mode selectric-mode typit mmt sudoku pacmacs dash-functional 2048-game emoji-cheat-sheet-plus company-emoji iedit scroll-restore play-crystal inf-crystal flycheck-crystal crystal-mode helm-company helm-c-yasnippet fuzzy company-web web-completion-data company-statistics clojure-snippets auto-yasnippet ac-ispell xterm-color shell-pop org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download multi-term htmlize gnuplot eshell-z eshell-prompt-extras esh-help powerline bind-key smartparens highlight f evil goto-chg projectile epl avy ghub let-alist async hydra dash s noflet ensime company sbt-mode scala-mode web-mode tagedit slim-mode scss-mode sass-mode pug-mode less-css-mode helm-css-scss haml-mode emmet-mode ahk-mode mips-mode ac-cider auto-complete smooth-scroll key-chord clj-refactor inflections edn multiple-cursors paredit yasnippet peg cider-eval-sexp-fu cider seq queue clojure-mode helm helm-core racket-mode faceup smeargle reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit mmm-mode markdown-toc markdown-mode magit-gitflow launchctl helm-gitignore gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter gh-md flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck evil-magit magit magit-popup git-commit with-editor diff-hl auto-dictionary ws-butler winum which-key volatile-highlights vi-tilde-fringe uuidgen use-package toc-org spaceline restart-emacs request rainbow-delimiters popwin persp-mode pcre2el paradox org-plus-contrib org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative link-hint info+ indent-guide hungry-delete hl-todo highlight-parentheses highlight-numbers highlight-indentation hide-comnt help-fns+ helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds helm-ag google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse expand-region exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-surround evil-search-highlight-persist evil-numbers evil-nerd-commenter evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav dumb-jump define-word column-enforce-mode clean-aindent-mode auto-highlight-symbol auto-compile aggressive-indent adaptive-wrap ace-window ace-link ace-jump-helm-line)))
+ '(pdf-view-midnight-colors (quote ("#DCDCCC" . "#383838")))
  '(vc-annotate-background nil)
  '(vc-annotate-color-map
-   '((20 . "#bf616a")
+   (quote
+    ((20 . "#bf616a")
      (40 . "#DCA432")
      (60 . "#ebcb8b")
      (80 . "#B4EB89")
@@ -1116,7 +1151,7 @@ This function is called at the very end of Spacemacs initialization."
      (300 . "#bf616a")
      (320 . "#DCA432")
      (340 . "#ebcb8b")
-     (360 . "#B4EB89")))
+     (360 . "#B4EB89"))))
  '(vc-annotate-very-old-color nil))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
