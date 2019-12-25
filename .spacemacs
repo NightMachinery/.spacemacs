@@ -1047,7 +1047,7 @@ you should place your code here."
   ;; (setq flycheck-scalastylerc
   ;;       "/Base/- Code/Resources/scalastyle_config.xml")
   ;;(line-number-mode t)
-  
+ ) 
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
