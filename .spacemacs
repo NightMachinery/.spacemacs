@@ -20,7 +20,7 @@ values."
    ;; installation feature and you have to explicitly list a layer in the
    ;; variable `dotspacemacs-configuration-layers' to install it.
    ;; (default 'unused)
-   dotspacemacs-enable-lazy-installation 'unused
+   dotspacemacs-enable-lazy-installation nil
    ;; If non-nil then Spacemacs will ask for confirmation before installing
    ;; a layer lazily. (default t)
    dotspacemacs-ask-for-lazy-installation t
@@ -30,7 +30,8 @@ values."
    dotspacemacs-configuration-layer-path '()
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(pdf
+   '(
+     ;; pdf
      ruby
      lua
      octave
@@ -48,9 +49,9 @@ values."
      xclipboard
      gpu
      epub
-     xkcd
+     ;; xkcd
      spotify
-     twitter
+     ;; twitter
      search-engine
      vimscript
      (elfeed :variables rmh-elfeed-org-files (list "~/.emacs.d/private/feeds/elfeed1.org"))
@@ -64,11 +65,11 @@ values."
      html
      ;; (python :variables python-backend 'anaconda)
      ;; (python :variables python-backend 'lsp python-lsp-server 'pyls ) ; python-pipenv-activate t
-     (python :variables
-             python-backend 'lsp
-             python-lsp-server 'mspyls
-             python-lsp-git-root "~/code/Misc/python-language-server/"
-             )
+     ;; (python :variables
+     ;;         python-backend 'lsp
+     ;;         python-lsp-server 'mspyls
+     ;;         python-lsp-git-root "~/code/Misc/python-language-server/"
+     ;;         )
      dap
      chrome
      (scala :variables
@@ -84,7 +85,7 @@ values."
      ;; <M-m f e R> (Emacs style) to install them.
      ;; ----------------------------------------------------------------
      helm
-     (auto-completion :disabled-for ocaml :variables
+     (auto-completion :disabled-for '(ocaml) :variables
                       auto-completion-enable-help-tooltip t
                       auto-completion-enable-snippets-in-popup t) ;; doesn't work with the mac port version of emacs.
      ;; better-defaults
@@ -118,7 +119,7 @@ values."
    ;; wrapped in a layer. If you need some configuration for these
    ;; packages, then consider creating a layer. You can also put the
    ;; configuration in `dotspacemacs/user-config'.
-   dotspacemacs-additional-packages '(evil-easymotion lispyville company-jedi evil-lispy dimmer focus system-packages google-this evil-string-inflection crux command-log-mode zoom atomic-chrome cider-hydra flycheck-pos-tip kibit-helper sayid flycheck-clojure helm-fuzzier smart-mode-line highlight-indent-guides ediprolog clomacs exec-path-from-shell osx-clipboard flymake-shellcheck symon google-translate md4rd adaptive-wrap persp-projectile key-chord solarized-theme color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
+   dotspacemacs-additional-packages '(blacken elpy evil-easymotion lispyville company-jedi evil-lispy dimmer focus system-packages google-this evil-string-inflection crux command-log-mode zoom atomic-chrome cider-hydra flycheck-pos-tip kibit-helper sayid flycheck-clojure helm-fuzzier smart-mode-line highlight-indent-guides ediprolog clomacs exec-path-from-shell osx-clipboard flymake-shellcheck symon google-translate md4rd adaptive-wrap persp-projectile key-chord solarized-theme color-theme-sanityinc-tomorrow doom-themes moe-theme zenburn-theme)
    ;; persp-projectile switch-window company-childframe
 
    ;; A list of packages that cannot be updated.
@@ -443,6 +444,9 @@ you should place your code here."
   (setenv "PAGER" "cat")                      ;;Required for shell mode.
 
   (defun my/python-mode-hook ()
+    ;; Somehow disabling company doesn't work. sth else probably reenables it ...
+    ;; (with-eval-after-load 'company (company-mode -1))
+    ;; (company-mode -1)
     ;; (with-eval-after-load 'company (add-to-list 'company-backends 'company-jedi))
     )
   (defun my/setup-overtone-hotkeys ()
@@ -477,13 +481,33 @@ you should place your code here."
   ;;     (spacemacs/python-start-or-switch-repl)
   ;;     (spacemacs/python-shell-send-buffer-switch)))
   ;;#uc
-  (evilem-default-keybindings "e")
+  ;; (evilem-default-keybindings "e")      ; #easymotion
   ;; (evilem-define (kbd "e s") 'evil-snipe-s) ;; Doesn't work
-  ;; (elpy-enable)
-  (require 'dap-python)
+
+
+  ;; START PYTHON
+  (elpy-enable)
+  ;; (require 'dap-python)
   (setenv "WORKON_HOME" "~/anaconda/envs")
   (pyvenv-activate  "~/anaconda/bin")   ; possibly bad?
-  ;; (pyvenv-mode 1) ;; Possibly useful?
+  (pyvenv-mode 1)                       ;; Possibly useful?
+  (when (require 'flycheck nil t)
+    (setq elpy-modules (delq 'elpy-module-flymake elpy-modules))
+    (add-hook 'elpy-mode-hook 'flycheck-mode))
+  (add-hook 'python-mode-hook 'my/python-mode-hook)
+  (when (executable-find "ipython")
+    (setq python-shell-interpreter "ipython"  python-shell-interpreter-args "--simple-prompt -i" python-shell-prompt-detect-failure-warning nil)
+    (add-to-list 'python-shell-completion-native-disabled-interpreters
+                 "ipython")
+    )
+  (defun night/pip-install-me ()
+    (interactive)
+    (shell-command
+     (concat "pip install " (shell-quote-argument (elpy-project-root))))
+    )
+  ;; END PYTHON
+
+  
   (defun night/make-buffer-executable ()
     (interactive)
     (shell-command
@@ -540,28 +564,27 @@ you should place your code here."
   ;;     ;;                        (cdr buffer-undo-list))))))
   ;;     ;;        (setq undo-auto--last-boundary-cause 0))))
   ;;     nil)
-  (setq company-global-modes '(not tuareg-mode))
   (require 'flymake-shellcheck)
   (setq shell-file-name "zsh")
   (add-hook 'sh-mode-hook 'flymake-shellcheck-load)
   (add-hook 'octave-mode-hook
             (lambda () (progn (setq octave-comment-char ?%)
-                              (setq comment-start "% ")
-                              (setq comment-add 0))))
+                         (setq comment-start "% ")
+                         (setq comment-add 0))))
 
   (evil-define-key 'normal tuareg-mode-map (kbd ", e b") #'tuareg-eval-buffer)
   (add-hook 'tuareg-mode-hook
             (lambda () (progn
-                         (company-mode -1))))
+                    (company-mode -1))))
   (setq manquery "^[0-9]+\\s-+")
   (when nil (add-hook 'Man-mode-hook
                       (lambda () (progn
-                                   (defun helm-swoop-pre-input-optimize ($query)
-                                     $query) ;; disable swoop escaping
-                                   ;; (spacemacs/toggle-maximize-buffer) ;; Breaks helm-man-woman
-                                   (setq helm-swoop-pre-input-function
-                                         (lambda () (progn
-                                                      manquery)))))))
+                              (defun helm-swoop-pre-input-optimize ($query)
+                                $query) ;; disable swoop escaping
+                              ;; (spacemacs/toggle-maximize-buffer) ;; Breaks helm-man-woman
+                              (setq helm-swoop-pre-input-function
+                                    (lambda () (progn
+                                            manquery)))))))
   ;; (defun helm-swoop-pre-input-optimize ($query)
   ;;   (when $query
   ;;     (let (($regexp (list '("\+" . "\\+")
@@ -624,9 +647,6 @@ you should place your code here."
         (replace-match "\\\\\""))
       (kill-new (buffer-substring-no-properties (point-min) (point-max)))))
   (global-set-key (kbd "H-C-M-e") 'insert-char)
-  (add-hook 'python-mode-hook 'my/python-mode-hook)
-  (when (executable-find "ipython")
-    (setq python-shell-interpreter "ipython"  python-shell-interpreter-args "--simple-prompt -i"))
   (require 'org)
   (with-eval-after-load 'org (push "~/code/Org/treasure-plan.org" org-agenda-files ))
   ;; (push 'cider--debug-mode evil-snipe-disabled-modes)
@@ -911,6 +931,9 @@ you should place your code here."
 
   (define-key evil-normal-state-map (kbd "[ o") 'evil-unimpaired/next-frame)
   (define-key evil-normal-state-map (kbd "] o") 'evil-unimpaired/previous-frame)
+  (define-key evil-normal-state-map (kbd "[ j") 'evil-jump-backward)
+  (define-key evil-normal-state-map (kbd "] j") 'evil-jump-forward)
+
 
   ;; (require 'persp-projectile)
   ;; Default value for :pin in each use-package.
@@ -1024,7 +1047,7 @@ you should place your code here."
                                     ((or (eq evil-state 'normal) (eq evil-state 'visual)) (execute-kbd-macro (kbd "<escape> , h h")))
                                     ((eq evil-state 'insert) (execute-kbd-macro(kbd "<escape> , h h i"))))))
 
-  (add-hook 'clojure-mode-hook 'typed-clojure-mode)
+  ;; (add-hook 'clojure-mode-hook 'typed-clojure-mode)
 
 
   ;; (require 'ac-cider)
@@ -1044,7 +1067,7 @@ you should place your code here."
   ;; (add-hook 'clojure-mode-hook 'se
   ;; t-auto-complete-as-completion-at-point-function)
   ;; (spacemacs/toggle-line-numbers-on)
-  (add-hook 'prog-mode-hook 'linum-mode)
+  ;; (add-hook 'prog-mode-hook 'linum-mode)
   (global-visual-line-mode)
   (global-undo-tree-mode)
   (evil-define-minor-mode-key 'motion 'visual-line-mode "j" 'evil-next-visual-line)
@@ -1054,7 +1077,10 @@ you should place your code here."
   ;; (setq flycheck-scalastylerc
   ;;       "/Base/- Code/Resources/scalastyle_config.xml")
   ;;(line-number-mode t)
- ) 
+  (setq company-global-modes '(not tuareg-mode org-mode)) ;  python-mode
+  (spacemacs|disable-company org-mode)
+  (spacemacs|disable-company python-mode)
+  ) 
 
 ;; Do not write anything past this comment. This is where Emacs will
 ;; auto-generate custom variable definitions.
