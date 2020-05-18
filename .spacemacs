@@ -58,6 +58,7 @@ values."
      (typescript :variables typescript-backend 'tide)
      (elfeed :variables rmh-elfeed-org-files (list "~/.emacs.d/private/feeds/elfeed1.org"))
      (rust :variables
+           rust-backend 'racer
            rust-format-on-save t)
      ;;crystal
      (haskell :variables haskell-enable-hindent t)
@@ -127,7 +128,7 @@ values."
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
    ;; A list of packages that will not be installed and loaded.
-   dotspacemacs-excluded-packages '(flycheck-ocaml lsp lsp-mode lsp-ui lsp-julia lsp-python lsp-python-ms)
+   dotspacemacs-excluded-packages '(flycheck-ocaml lsp lsp-mode lsp-ui lsp-rust lsp-julia lsp-python lsp-python-ms)
    ;; Defines the behaviour of Spacemacs when installing packages.
    ;; Possible values are `used-only', `used-but-keep-unused' and `all'.
    ;; `used-only' installs only explicitly used packages and uninstall any
@@ -542,6 +543,15 @@ you should place your code here."
   ;; END PYTHON
 
   
+  (defun night/vscode ()
+    (interactive)
+    (shell-command
+		 (concat "code-insiders -r " (shell-quote-argument (buffer-file-name)))))
+
+  (defun night/workarounds ()
+    (interactive)
+    (cancel-function-timers 'auto-revert-buffers))
+
   (defun night/make-buffer-executable ()
     (interactive)
     (shell-command
@@ -599,7 +609,7 @@ you should place your code here."
   ;;     ;;        (setq undo-auto--last-boundary-cause 0))))
   ;;     nil)
   (require 'flymake-shellcheck)
-  (setq shell-file-name "zsh")
+  ;; (setq shell-file-name "zsh")
   (add-hook 'sh-mode-hook 'flymake-shellcheck-load)
   (add-hook 'octave-mode-hook
             (lambda () (progn (setq octave-comment-char ?%)
@@ -682,7 +692,7 @@ you should place your code here."
       (kill-new (buffer-substring-no-properties (point-min) (point-max)))))
   (global-set-key (kbd "H-C-M-e") 'insert-char)
   (require 'org)
-  (with-eval-after-load 'org (push "~/code/Org/treasure-plan.org" org-agenda-files ))
+  ;; (with-eval-after-load 'org (push "~/code/Org/treasure-plan.org" org-agenda-files ))
   ;; (push 'cider--debug-mode evil-snipe-disabled-modes)
   (add-hook 'cider--debug-mode-hook (lambda ()
                                       (if (bound-and-true-p cider--debug-mode)
@@ -772,13 +782,12 @@ you should place your code here."
   (require 'zoom)
   (with-eval-after-load 'zoom
     (setq zoom-size '(0.618 . 0.618))
-    (spacemacs/set-leader-keys "tg" 'zoom-mode)) ;; TODO TOCHECK Does it work?
+    (spacemacs/set-leader-keys "tg" 'zoom-mode))
   ;; (require 'auto-scroll)
   ;; (setq dotspacemacs-zone-out-when-idle 300) ;; Activates Zone in specified seconds.
   (require 'helm)
   (require 'helm-swoop)
-  (spacemacs/set-leader-keys "si" 'helm-swoop-from-evil-search  "si" 'helm-swoop-from-isearch
-    )
+  (spacemacs/set-leader-keys "si" 'helm-swoop-from-evil-search)  ;; doesn 't seem to work
   ;; Instead of helm-multi-swoop-all, you can also use helm-multi-swoop-current-mode
   (define-key helm-swoop-map (kbd "M-m") 'helm-multi-swoop-current-mode-from-helm-swoop)
   ;; Move up and down like isearch
@@ -896,7 +905,6 @@ you should place your code here."
             (lambda () (local-set-key (kbd "q") 'Man-kill)))
 
   (spacemacs/set-leader-keys "qx" '(lambda () (interactive) (progn (kill-buffer) (spacemacs/frame-killer))))
-  (spacemacs/set-leader-keys "oo" 'recentf-open-files)
   (spacemacs/set-leader-keys "oms" 'evil-set-marker)
   (spacemacs/set-leader-keys "omg" 'evil-goto-mark)
   (spacemacs/set-leader-keys "oa" 'write-file)
@@ -1104,8 +1112,8 @@ you should place your code here."
   ;; (add-hook 'prog-mode-hook 'linum-mode)
   (global-visual-line-mode)
   (global-undo-tree-mode)
-  (evil-define-minor-mode-key 'motion 'visual-line-mode "j" 'evil-next-visual-line)
-  (evil-define-minor-mode-key 'motion 'visual-line-mode "k" 'evil-previous-visual-line)
+  ;; (evil-define-minor-mode-key 'motion 'visual-line-mode "j" 'evil-next-visual-line)
+  ;; (evil-define-minor-mode-key 'motion 'visual-line-mode "k" 'evil-previous-visual-line)
   ;; (setq flycheck-scalastyle-jar
   ;;       "/Base/- Code/Resources/scalastyle_2.12-1.1.0-20171004.080250-1-batch.jar")
   ;; (setq flycheck-scalastylerc
